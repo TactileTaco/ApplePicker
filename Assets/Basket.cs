@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Basket : MonoBehaviour {
-
+public class Basket : MonoBehaviour 
+{
 	// Use this for initialization
 	void Start () {
 	
