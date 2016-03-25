@@ -3,15 +3,14 @@ using System.Collections;
 
 public class Apple : MonoBehaviour {
 
-	// Use this for initialization
-	void Start ()
-	{
-	
-	}
+	public static float bottomY = -10f;
 
 	// Update is called once per frame
 	void Update ()
 	{
-		rigidbody.
+		if (transform.position.y < bottomY )
+		{
+			Destroy( gameObject );
+		}
 	}
 }

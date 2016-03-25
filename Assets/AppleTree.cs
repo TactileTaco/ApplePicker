@@ -1,114 +1,61 @@
 ﻿using UnityEngine;
-using UnityEngine.Events;
 using System.Collections;
 
 public class AppleTree : MonoBehaviour 
 {
-	public int maxDropCount;
 	public GameObject applePrefab;
-	public int movementWidth;
-	public float avgDropTime;
-	public float dropVariance;
 
-	private GameObject[] _dropping;
-	private GameObject[] _holding;
-	private float _timeToDrop;
-	private int _targetPosition;
-	private int _maxMove;
+	//movement speed
+	public float speed = 1f;
+
+	//movement range
+	public float leftAndRightEdge = 10f;
+
+	//direction change probability
+	public float chanceToChangeDirections = 0.1f;
+
+	//apple drop rate
+	public float secondsBetweenAppleDrops = 1f;
+
+	private float lastDirectionChange = 0f;
+
 	// Use this for initialization
 	void Start ()
 	{
-		_maxMove = movementWidth / 2;
-		_targetPosition = Random.Range(-_maxMove, _maxMove);
-		
-		_dropping = new GameObject[maxDropCount];
-		_holding = new GameObject[maxDropCount];
-
-		for (int i = 0; i < maxDropCount; i++)
-		{
-			_holding[i] = (GameObject)Instantiate(applePrefab);
-		}
-	}
-	
-	private void _TargetPositionReached()
-	{
-		_targetPosition = Random.Range(-_maxMove, _maxMove);
+		InvokeRepeating( "DropApple", 2f, secondsBetweenAppleDrops );
 	}
 
-	private int _NumDropping()
+	void DropApple()
 	{
-		return maxDropCount - _holding.Length;
-	}
-
-	private int _GetNextApple(int i = 0)
-	{
-		GameObject apple = _dropping[i];
-		while (apple == null && ++i < maxDropCount)
-		{
-			apple = _dropping[i];
-		}
-		return i;
-	}
-
-	private int _FindEmptySpace()
-	{
-		for (int i = 0; i < maxDropCount; ++i)
-		{
-			if (_dropping[i] == null)
-			{
-				return i;
-			}
-		}
-		return -1;
-	}
-
-	private void _CheckDropping()
-	{
-		GameObject apple;
-		int check = 0;
-		for (int i = 0; check < _NumDropping(); ++i)
-		{
-			++check;
-			i = _GetNextApple(i);
-			apple = _dropping[i];
-
-			if (!apple.activeSelf)
-			{
-				_holding[_holding.Length] = apple;
-				_dropping[i] = null;
-			}
-		}
-	}
-
-	private void _DropApple()
-	{
-		int holding = _holding.Length;
-		if (holding-- > 0)
-		{
-			Debug.Log(holding);
-			Debug.Log(_dropping.Length);
-			_holding[holding].transform.position = transform.position;
-			_holding[holding].SetActive(true);
-			_dropping[_FindEmptySpace()] = _holding[holding];
-			_holding[holding] = null;
-		}
+		GameObject apple = Instantiate( applePrefab ) as GameObject;
+		apple.transform.position = transform.position;
 	}
 
 	// Update is called once per frame
 	void Update ()
 	{
-		_CheckDropping();
-		if (Mathf.Abs(transform.position.x - _targetPosition) < 0.1)
+		Vector3 pos = transform.position;
+		pos.x += speed * Time.deltaTime;
+		lastDirectionChange += Time.deltaTime;
+		transform.position = pos;
+
+		if ( pos.x < -leftAndRightEdge )
 		{
-			_TargetPositionReached();
+			speed = Mathf.Abs(speed);
 		}
-
-		_timeToDrop -= Time.deltaTime;
-
-		if (_timeToDrop <= 0)
+		else if ( pos.x > leftAndRightEdge )
 		{
-			_DropApple();
-			_timeToDrop = avgDropTime + Random.Range(-dropVariance, dropVariance);
+			speed = -Mathf.Abs(speed);
+		}
+	}
+
+	void FixedUpdate()
+	{
+		if ( Random.value < chanceToChangeDirections * Mathf.Clamp(lastDirectionChange, 0f, 2f) / 2 )
+		{
+			lastDirectionChange = 0f;
+			speed *= -1;
 		}
 	}
 }
+
